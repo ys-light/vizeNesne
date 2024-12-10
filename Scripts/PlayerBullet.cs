@@ -8,7 +8,7 @@ public class PlayerBullet : MonoBehaviour
     Rigidbody2D body;
     Transform target;
     [SerializeField]
-    float speed = 10;
+    float speed = 20;
 
     public void Setup(Transform target)
     {
@@ -23,7 +23,7 @@ public class PlayerBullet : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        Destroy(this.gameObject, 2f);
     }
     private void FixedUpdate()
     {

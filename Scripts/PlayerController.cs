@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
@@ -31,14 +32,23 @@ public class PlayerController : MonoBehaviour
     private GameObject tail;
 
     //private int moveSpeed = 0;
+    [SerializeField]
+    private Text txtLevel;
     private int  level = 0;
+
+    public int Level { get => level; set => level = value; }
+    [SerializeField]
+    private GameObject destroyEffect;
+
     void Start()
     {
         body = GetComponent<Rigidbody2D>();
         //moveSpeed = level * 10;
         var tailObj = Instantiate(tail, transform.position, Quaternion.identity);
-        tailObj.GetComponent<TailController>().Setup(body);
+        tailObj.GetComponent<TailController>().Setup(body,playerBullet);
         tails.Add(tailObj);
+
+        txtLevel.text = "Level:" + Level;
     }
 
     // Update is called once per frame
@@ -49,11 +59,12 @@ public class PlayerController : MonoBehaviour
         if (fixedJoystick.JoystickPoinerDown)
         {
             Attack();
+            TailAttack();
         }
         if (currentHP<=0)
         {
             Debug.Log("Öldün!");
-            Time.timeScale = 0; 
+            //Time.timeScale = 0; 
             return; 
         }
     }
@@ -83,9 +94,17 @@ public class PlayerController : MonoBehaviour
 
 
     }
-    private void OnTriggerEnter2D(Collider2D collision)
+    //private void OnTriggerEnter2D(Collider2D collision)
+    //{
+    //    if (collision.CompareTag("enemyBullet"))
+    //    {
+    //        TakeDamage(10);
+    //    }
+    //}
+
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.CompareTag("enemyBullet"))
+        if (collision.collider.CompareTag("enemyBullet"))
         {
             TakeDamage(10);
         }
@@ -97,6 +116,7 @@ public class PlayerController : MonoBehaviour
         imgHP.fillAmount = currentHP / maxHP;
         if (currentHP <= 0)
         {
+            Instantiate(destroyEffect, transform.position, Quaternion.identity);
             GameOver();
         }
     }
@@ -105,38 +125,54 @@ public class PlayerController : MonoBehaviour
     {
 
         //Yeniden baþlat.
+        SceneManager.LoadScene(0);
     }
 
     private void Attack()
     {
-        // Enemy kontrolü
+        //Enemy kontrolü
         GameObject enemy = GameObject.FindGameObjectWithTag("enemy");
         if (enemy == null)
         {
             Debug.Log("Enemy yok, oyun durduruldu!");
-            Time.timeScale = 0; // Oyun durduruluyor
+            /*Time.timeScale = 0; */// Oyun durduruluyor
             return; // Fonksiyondan çýk
         }
 
-        // Eðer düþman varsa ateþ et
+        //Eðer düþman varsa ateþ et
         if (bulletTimer >= bulletDuration)
         {
-            Instantiate(playerBullet, transform.position, Quaternion.identity).GetComponent<PlayerBullet>().Setup(enemy.transform);
+            Instantiate(playerBullet, transform.position, Quaternion.identity).GetComponent<PlayerBullet>().Setup((enemy).transform);
             bulletTimer = 0;
         }
 
         bulletTimer += Time.deltaTime;
+
+        //var enemy = GameObject.FindGameObjectWithTag("enemy");
+        //if (enemy != null&& bulletTimer >= bulletDuration)
+        //{
+        //    Instantiate(playerBullet, transform.position, Quaternion.identity).GetComponent<PlayerBullet>().Setup(enemy.transform);
+        //}
     }
 
+    private void TailAttack()
+    {
+
+        foreach (GameObject tailObj in tails)
+        {
+            tailObj.GetComponent<TailController>().Attack();
+        }
+    }
     public void UpdateLevel()
 
     {
-        var prevTail = tails[level];
+        var prevTail = tails[Level];
         var tailObj = Instantiate(tail, prevTail.transform.position, Quaternion.identity);
-        tailObj.GetComponent<TailController>().Setup(prevTail.GetComponent<Rigidbody2D>());
+        tailObj.GetComponent<TailController>().Setup(prevTail.GetComponent<Rigidbody2D>(),playerBullet);
         tails.Add(tailObj);
-        level++;
-        moveSpeed = level * MoveSpeedMultiplier;
+        Level++;
+        moveSpeed = Level * MoveSpeedMultiplier;
+        txtLevel.text = "Level: "+Level;
     }
 }
 

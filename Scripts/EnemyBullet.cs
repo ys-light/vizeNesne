@@ -19,7 +19,7 @@ public class EnemyBullet : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        Destroy(this.gameObject, 2f);
     }
     private void FixedUpdate()
     {
@@ -39,4 +39,11 @@ public class EnemyBullet : MonoBehaviour
             Destroy(this.gameObject);
         }
     }
+    //private void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    if (collision.collider.CompareTag("Player"))
+    //    {
+    //        Destroy(this.gameObject);
+    //    }
+    //}
 }
